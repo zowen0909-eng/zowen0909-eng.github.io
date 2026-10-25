@@ -720,6 +720,15 @@ table.data tbody tr:hover { background: var(--surface-2); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
+
+.cloud-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  display: inline-block;
+  flex: 0 0 8px;
+}
 </style>
 </head>
 <body class="size-md">
@@ -747,6 +756,11 @@ table.data tbody tr:hover { background: var(--surface-2); }
       </a>
     </nav>
     <div class="sidebar-footer">
+  <button type="button" class="icon-btn" id="cloudBtn" title="云同步配置" style="width:100%;justify-content:flex-start;gap:6px;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+    <span id="cloudBtnText">未配置</span>
+    <span class="cloud-dot" id="cloudDot" style="width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block;flex:0 0 8px;"></span>
+  </button>
       <div class="setting-row">
         <span>云同步</span>
         <button type="button" id="cloudBtn" class="cloud-toggle" title="配置 Supabase 云同步">
@@ -1305,6 +1319,73 @@ table.data tbody tr:hover { background: var(--surface-2); }
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <!-- ================= Gist 云同步配置弹窗 ================= -->
+    <div class="modal" id="gistConfigModal" role="dialog" aria-modal="true" aria-labelledby="gistConfigTitle">
+      <div class="modal-box md">
+        <div class="modal-head">
+          <h3 id="gistConfigTitle">GitHub Gist 云同步配置</h3>
+          <button type="button" class="icon-btn" data-close="gistConfigModal" aria-label="关闭">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="alert" style="margin-bottom:14px;">
+            <span class="dot"></span>
+            <span>配置 GitHub Gist 实现数据自动云同步。需要在 GitHub 上创建一个 Gist 并生成个人访问令牌（Token）。</span>
+          </div>
+          <div class="field">
+            <label for="gistIdInput">Gist ID</label>
+            <input type="text" id="gistIdInput" placeholder="例如：abc123def456" autocomplete="off">
+            <div class="field-hint">创建 Gist 后，浏览器地址栏中的 ID（gist.github.com/用户名/这里）</div>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="gistTokenInput">GitHub Personal Access Token</label>
+            <input type="password" id="gistTokenInput" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
+            <div class="field-hint">GitHub 设置 > Developer settings > Personal access tokens > Tokens (classic) > 勾选 gist 权限</div>
+          </div>
+          <div class="field" style="margin-top:10px;">
+            <label for="gistFileName">Gist 描述名称</label>
+            <input type="text" id="gistFileName" placeholder="OpenCalc备份" autocomplete="off">
+            <div class="field-hint">用于标识这个 Gist 的名称</div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary btn-sm" id="gistSaveBtn">保存配置</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="gistTestBtn">测试连接</button>
+          </div>
+          <details style="margin-top:16px;">
+            <summary>如何创建 Gist 和 Token（详细步骤）</summary>
+            <div style="margin-top:10px;font-size:.85em;color:var(--muted);line-height:1.7;">
+              <p><b>第一步：创建 Gist</b></p>
+              <ol style="margin:6px 0 10px 20px;">
+                <li>打开 <a href="https://gist.github.com" target="_blank" rel="noopener" style="color:var(--accent);">gist.github.com</a></li>
+                <li>在 "Filename including extension" 输入框填写：backup.json</li>
+                <li>在下面的代码框随便输入一个字符（如 1）</li>
+                <li>选择 "Create secret gist"（私密 Gist）</li>
+                <li>创建成功后，复制地址栏中的 ID</li>
+              </ol>
+              <p><b>第二步：创建 Token</b></p>
+              <ol style="margin:6px 0 10px 20px;">
+                <li>打开 GitHub 设置：https://github.com/settings/settings</li>
+                <li>滚动到底部点击 "Developer settings"</li>
+                <li>点击 "Personal access tokens" > "Tokens (classic)"</li>
+                <li>点击 "Generate new token" > 选择 "Generate new token (classic)"</li>
+                <li>在 scopes 中只勾选 <b>gist</b> 这一项</li>
+                <li>点击 "Generate token" 按钮</li>
+                <li>复制生成的 token（格式如 ghp_xxxxxxxxxxxx）</li>
+              </ol>
+              <p><b>第三步：配置</b></p>
+              <ol style="margin:6px 0 10px 20px;">
+                <li>把 Gist ID 和 Token 填入上面的输入框</li>
+                <li>点 "保存配置"</li>
+                <li>点 "测试连接" 验证是否成功</li>
+              </ol>
+            </div>
+          </details>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" data-close="gistConfigModal">关闭</button>
+        </div>
+      </div>
+    </div>
     <noscript><div class="card">本工具需要启用 JavaScript 才能计算与保存数据。</div></noscript>
   </main>
 </div>
@@ -4214,7 +4295,53 @@ function bindEvents() {
     if (open.length) { closeModal(open[open.length - 1].id); return; }
     if ($('detailPanel').classList.contains('show')) { closeDetail(); return; }
   });
+  
+  // Gist 云同步按钮
+  document.getElementById('cloudBtn').addEventListener('click', function () {
+    const cfg = loadGistConfig();
+    if (cfg) {
+      document.getElementById('gistIdInput').value = cfg.gistId;
+      document.getElementById('gistTokenInput').value = cfg.gistToken;
+      document.getElementById('gistFileName').value = cfg.gistFileName || 'OpenCalc备份';
+    }
+    openModal('gistConfigModal');
+  });
+
+  document.getElementById('gistSaveBtn').addEventListener('click', function () {
+    const gistId = document.getElementById('gistIdInput').value.trim();
+    const gistToken = document.getElementById('gistTokenInput').value.trim();
+    const gistFileName = document.getElementById('gistFileName').value.trim() || 'OpenCalc备份';
+    
+    if (!gistId || !gistToken) {
+      showToast('请填写 Gist ID 和 Token', 'error');
+      return;
+    }
+    
+    saveGistConfig({ gistId: gistId, gistToken: gistToken, gistFileName: gistFileName });
+    closeModal('gistConfigModal');
+    updateCloudIndicator('connected');
+    showToast('配置已保存，数据将自动同步到云端', 'success');
+    
+    gistTest();
+  });
+
+  document.getElementById('gistTestBtn').addEventListener('click', gistTest);
+
+  // 数据管理中的"立即备份"按钮也触发云同步
+  document.getElementById('backupNowBtn').addEventListener('click', function() {
+    gistUpload().then(function(success) {
+      if (success) {
+        showToast('云端备份已完成', 'success');
+      } else {
+        showToast('云端备份失败，请检查配置', 'error');
+      }
+    });
+  });
+
   window.addEventListener('beforeunload', savePrefs);
+
+  // 初始化 Gist 云同步状态
+  setTimeout(initGistStatus, 100);
 }
 function init() {
   applyTheme();
@@ -4246,6 +4373,207 @@ function init() {
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
 else init();
 
+
+
+
+/* ==================== GitHub Gist 云同步 ==================== */
+const GIST_CONFIG_KEY = 'openCalc_gistConfig';
+
+function loadGistConfig() {
+  try {
+    const raw = localStorage.getItem(GIST_CONFIG_KEY);
+    if (!raw) return null;
+    const cfg = JSON.parse(raw);
+    if (cfg.gistId && cfg.gistToken) return cfg;
+    return null;
+  } catch (e) { return null; }
+}
+
+function saveGistConfig(cfg) {
+  try {
+    localStorage.setItem(GIST_CONFIG_KEY, JSON.stringify(cfg));
+  } catch (e) { /* ignore */ }
+}
+
+function updateCloudIndicator(status) {
+  const dot = document.getElementById('cloudDot');
+  const text = document.getElementById('cloudBtnText');
+  if (!dot || !text) return;
+  
+  dot.className = 'cloud-dot';
+  if (status === 'connected') {
+    dot.style.background = 'var(--green)';
+    text.textContent = '已连接';
+  } else if (status === 'syncing') {
+    dot.style.background = 'var(--amber)';
+    text.textContent = '同步中...';
+  } else if (status === 'error') {
+    dot.style.background = 'var(--red)';
+    text.textContent = '同步失败';
+  } else {
+    dot.style.background = 'var(--muted)';
+    text.textContent = '未配置';
+  }
+}
+
+async function gistCreate() {
+  const cfg = loadGistConfig();
+  if (!cfg) { showToast('请先配置 Gist 云同步', 'error'); return false; }
+  
+  updateCloudIndicator('syncing');
+  
+  try {
+    const backup = buildBackupObject();
+    const resp = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'token ' + cfg.gistToken,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        description: cfg.gistFileName || 'OpenCalc备份',
+        public: false,
+        files: {
+          'backup.json': { content: JSON.stringify(backup) }
+        }
+      })
+    });
+    
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message || '创建失败');
+    }
+    
+    const result = await resp.json();
+    cfg.gistId = result.id;
+    saveGistConfig(cfg);
+    updateCloudIndicator('connected');
+    showToast('云端同步已创建，Gist ID: ' + result.id, 'success');
+    return true;
+  } catch (err) {
+    updateCloudIndicator('error');
+    showToast('创建 Gist 失败: ' + err.message, 'error');
+    return false;
+  }
+}
+
+async function gistUpload() {
+  const cfg = loadGistConfig();
+  if (!cfg) return false;
+  
+  updateCloudIndicator('syncing');
+  
+  try {
+    const backup = buildBackupObject();
+    const resp = await fetch('https://api.github.com/gists/' + cfg.gistId, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': 'token ' + cfg.gistToken,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: {
+          'backup.json': { content: JSON.stringify(backup) }
+        }
+      })
+    });
+    
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message || '上传失败');
+    }
+    
+    updateCloudIndicator('connected');
+    return true;
+  } catch (err) {
+    updateCloudIndicator('error');
+    showToast('上传到云端失败: ' + err.message, 'error');
+    return false;
+  }
+}
+
+async function gistDownload() {
+  const cfg = loadGistConfig();
+  if (!cfg) { showToast('请先配置 Gist 云同步', 'error'); return null; }
+  
+  updateCloudIndicator('syncing');
+  
+  try {
+    const resp = await fetch('https://api.github.com/gists/' + cfg.gistId, {
+      headers: {
+        'Authorization': 'token ' + cfg.gistToken,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message || '下载失败');
+    }
+    
+    const gist = await resp.json();
+    const file = gist.files && gist.files['backup.json'];
+    if (!file) throw new Error('Gist 中未找到 backup.json 文件');
+    
+    const backup = JSON.parse(file.content);
+    updateCloudIndicator('connected');
+    return backup;
+  } catch (err) {
+    updateCloudIndicator('error');
+    showToast('从云端下载失败: ' + err.message, 'error');
+    return null;
+  }
+}
+
+async function gistTest() {
+  const cfg = loadGistConfig();
+  if (!cfg) { showToast('请先填写 Gist ID 和 Token', 'error'); return; }
+  
+  updateCloudIndicator('syncing');
+  
+  try {
+    const resp = await fetch('https://api.github.com/gists/' + cfg.gistId, {
+      headers: {
+        'Authorization': 'token ' + cfg.gistToken,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+    
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message || '连接失败');
+    }
+    
+    const gist = await resp.json();
+    updateCloudIndicator('connected');
+    showToast('连接成功！Gist: ' + (gist.description || cfg.gistId), 'success');
+  } catch (err) {
+    updateCloudIndicator('error');
+    showToast('测试连接失败: ' + err.message, 'error');
+  }
+}
+
+function initGistStatus() {
+  const cfg = loadGistConfig();
+  if (cfg && cfg.gistId) {
+    updateCloudIndicator('connected');
+    setTimeout(function() {
+      gistDownload().then(function(data) {
+        if (data) {
+          const hasRecords = Array.isArray(data.tradeRecords) && data.tradeRecords.length > 0;
+          const hasMonths = Array.isArray(data.fundCurve) && data.fundCurve.length > 0;
+          if (hasRecords || hasMonths) {
+            showToast('已从云端加载最新数据', 'success');
+          }
+        }
+      }).catch(function() { });
+    }, 2000);
+  } else {
+    updateCloudIndicator('disconnected');
+  }
+}
 
 
 })();
